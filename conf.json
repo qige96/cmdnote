@@ -1,5 +1,5 @@
 {
-	"editor": "nvim",
+	"editor": "nano",
 	"browser": "less",
 	"localRepoDir": "/home/ricky/my-projects/cmdnote/cmd_notes",
 	"remoteRepoDir": ""

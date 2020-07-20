@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	BleveFolder   = "notes.bleve"
+	BleveFolder   = ".notes.bleve"
 	VersionNumber = "0.1.0"
 )
 
@@ -46,11 +46,15 @@ var (
 	version bool
 	help    bool
 
-	read   string
-	write  string
-	list   bool
-	search string
-	remove string
+	read             string
+	write            string
+	list             bool
+	search           string
+	remove           string
+	ToRename         bool
+	OldName, NewName string
+
+	IsInteractive bool
 )
 
 func init() {
@@ -71,8 +75,15 @@ func init() {
 	flag.StringVar(&search, "search", "", "search a note")
 	flag.StringVar(&search, "s", "", "search a note")
 
-	flag.StringVar(&remove, "delete", "", "delete a note")
-	flag.StringVar(&remove, "d", "", "delete a note")
+	flag.StringVar(&remove, "remove", "", "remove a note")
+
+	flag.BoolVar(&ToRename, "rename", false, "rename a note")
+	flag.StringVar(&OldName, "old", "", "old noteName ")
+	flag.StringVar(&NewName, "new", "", "new noteName ")
+
+	flag.BoolVar(&IsInteractive, "interactive", false, "use interactive mode")
+	flag.BoolVar(&IsInteractive, "i", false, "use interactive mode")
+
 }
 
 func parseArges() {
@@ -92,15 +103,31 @@ func parseArges() {
 
 	if write != "" {
 		writeNote(CONF.Editor, FullNotePath(write))
-		IndexANote(write)
+		IndexNote(write)
 	}
 
 	if list {
-		listNotes()
+		if IsInteractive {
+			listNotesInteractive()
+		} else {
+			listNotes()
+		}
 	}
 
 	if search != "" {
-		searchNotes(search)
+		if IsInteractive {
+			searchNotesInteractive(search)
+		} else {
+			searchNotes(search)
+		}
+	}
+
+	if remove != "" {
+		remoteNote(FullNotePath(remove))
+	}
+
+	if ToRename {
+		renameNote(FullNotePath(OldName), FullNotePath(NewName))
 	}
 }
 
@@ -114,6 +141,11 @@ func Exist(filename string) bool {
 }
 
 func init() {
+	if !Exist(path.Join(path.Dir(CONF.LocalRepoDir), "conf.json")) {
+		DumpConf(path.Join(path.Dir(CONF.LocalRepoDir), "conf.json"))
+	} else {
+		LoadConf(path.Join(path.Dir(CONF.LocalRepoDir), "conf.json"))
+	}
 	if !Exist(CONF.LocalRepoDir) {
 		os.MkdirAll(CONF.LocalRepoDir, os.ModePerm)
 	}
@@ -130,11 +162,12 @@ func init() {
 }
 
 func GetDefaultLocalRepoDir() string {
-	fName, err := filepath.Abs(os.Args[0])
-	if err != nil {
-		log.Fatal(err)
-	}
-	return path.Join(path.Dir(fName), "cmd_notes")
+	return path.Join(getExecutePath(), "cmd_notes")
+	// fName, err := filepath.Abs(os.Args[0])
+	// if err != nil {
+	// log.Fatal(err)
+	// }
+	// return path.Join(path.Dir(fName), "cmd_notes")
 }
 
 // load configuration from CONF file
@@ -198,7 +231,7 @@ func writeNote(prog, notePath string) {
 
 }
 
-func IndexANote(noteTitle string) {
+func IndexNote(noteTitle string) {
 	index, err := bleve.Open(BlevePath)
 	if err != nil {
 		log.Fatal(err)
@@ -211,7 +244,7 @@ func IndexANote(noteTitle string) {
 		log.Fatal(err)
 	}
 
-	index.Index(noteTitle, string(data))
+	index.Index(noteTitle, noteTitle+" "+string(data))
 }
 
 func noteTitlesBySearch(keywords string) []string {
@@ -339,10 +372,37 @@ func interactiveSession(noteTitles []string) {
 			notePath := path.Join(CONF.LocalRepoDir, noteTitles[noteId])
 			invoke(prog, []string{notePath})
 		} else {
-			fmt.Printf("noteId %d out of range %d - %d\n", noteId, 0, len(noteTitles))
+			fmt.Printf("noteId %d out of range [%d] - [%d] \n", noteId, 0, len(noteTitles)-1)
 		}
 
 	}
+}
+
+// remove a note
+func remoteNote(notePath string) {
+	err := os.Remove(notePath)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+// rename a note
+func renameNote(oldPath, newPath string) {
+	err := os.Rename(oldPath, newPath)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func getExecutePath() string {
+	dir, err := os.Executable()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	exPath := filepath.Dir(dir)
+
+	return exPath
 }
 
 func main() {
