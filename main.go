@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,7 +17,8 @@ import (
 )
 
 const (
-	BleveFolder = "notes.bleve"
+	BleveFolder   = "notes.bleve"
+	VersionNumber = "0.1.0"
 )
 
 type Configuration struct {
@@ -39,6 +41,72 @@ var CONF Configuration = Configuration{
 }
 
 var BlevePath = path.Join(CONF.LocalRepoDir, BleveFolder)
+
+var (
+	version bool
+	help    bool
+
+	read   string
+	write  string
+	list   bool
+	search string
+	remove string
+)
+
+func init() {
+	flag.BoolVar(&version, "version", false, "display version number")
+	flag.BoolVar(&version, "v", false, "display version number")
+
+	flag.BoolVar(&help, "help", false, "display help info")
+
+	flag.StringVar(&read, "read", "", "read a note")
+	flag.StringVar(&read, "r", "", "read a note")
+
+	flag.StringVar(&write, "write", "", "write a note")
+	flag.StringVar(&write, "w", "", "write a note")
+
+	flag.BoolVar(&list, "list", false, "list a note")
+	flag.BoolVar(&list, "l", false, "list a note")
+
+	flag.StringVar(&search, "search", "", "search a note")
+	flag.StringVar(&search, "s", "", "search a note")
+
+	flag.StringVar(&remove, "delete", "", "delete a note")
+	flag.StringVar(&remove, "d", "", "delete a note")
+}
+
+func parseArges() {
+	flag.Parse()
+
+	if version {
+		fmt.Println(VersionNumber)
+	}
+
+	if help {
+		flag.Usage()
+	}
+
+	if read != "" {
+		readNote(CONF.Browser, FullNotePath(read))
+	}
+
+	if write != "" {
+		writeNote(CONF.Editor, FullNotePath(write))
+		IndexANote(write)
+	}
+
+	if list {
+		listNotes()
+	}
+
+	if search != "" {
+		searchNotes(search)
+	}
+}
+
+func FullNotePath(noteTitle string) string {
+	return path.Join(CONF.LocalRepoDir, noteTitle)
+}
 
 func Exist(filename string) bool {
 	_, err := os.Stat(filename)
@@ -121,7 +189,6 @@ func readNote(prog, notePath string) {
 // write a note
 func writeNote(prog, notePath string) {
 	fileDir := path.Dir(notePath)
-	fmt.Println(fileDir)
 	err := os.MkdirAll(fileDir, os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
@@ -279,11 +346,5 @@ func interactiveSession(noteTitles []string) {
 }
 
 func main() {
-	// fmt.Println(CONF)
-	DumpConf(path.Join(path.Dir(GetDefaultLocalRepoDir()), "conf.json"))
-	// writeNote("nvim", path.Join(CONF.LocalRepoDir, getTimeFileName()))
-	// readNote("less", "2020-07-19_11-49-29.txt")
-	// listNotesInteractive()
-	IndexANote("2020-07-20_13-02-54.txt")
-	searchNotesInteractive("hello")
+	parseArges()
 }
