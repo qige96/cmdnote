@@ -40,7 +40,7 @@ $ cmdnote --remove world.txt # 删除笔记
 **还能通过关键词搜索的方式找到现有的笔记。**
 
 ```shell
-$ git -s "hello"
+$ cmdnote -s "hello"
 ```
 
 #### 配置

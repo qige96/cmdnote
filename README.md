@@ -37,7 +37,7 @@ $ cmdnote --remove world.txt # remove a note
 **Support full text search by keywords**
 
 ```shell
-$ git -s "hello"
+$ cmdnote -s "hello"
 ```
 
 #### Configuration
