@@ -2,7 +2,7 @@
 
 A simple note taking system for command line interface.
 
-
+[中文文档](./README.zh.md)
 
 #### Installation
 
