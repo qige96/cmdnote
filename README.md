@@ -1,6 +1,6 @@
 # CmdNote
 
-A simple note taking system for command line interface.
+A simple note taking system for command line interface. Project website: [https://qige96.github.io/cmdnote/](https://qige96.github.io/cmdnote/)
 
 [中文文档](./README.zh.md)
 
