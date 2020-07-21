@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 )
 
 const (
-	BleveFolder   = ".notes.bleve"
+	BleveFolder   = ".notes.bleve" // where note indices live
 	VersionNumber = "0.1.0"
 )
 
@@ -28,29 +29,27 @@ type Configuration struct {
 	RemoteRepoDir string `json:"remoteRepoDir,mitempty"`
 }
 
-type Note struct {
-	Title string
-	Body  string
-}
-
 var CONF Configuration = Configuration{
-	"nvim",
-	"less",
+	GetDefaultEditorBrowser(),
+	GetDefaultEditorBrowser(),
 	GetDefaultLocalRepoDir(),
 	"",
 }
 
-var BlevePath = path.Join(CONF.LocalRepoDir, BleveFolder)
+var (
+	confPath  = path.Join(path.Dir(CONF.LocalRepoDir), "conf.json")
+	BlevePath = path.Join(CONF.LocalRepoDir, BleveFolder)
+)
 
 var (
 	version bool
 	help    bool
 
-	read             string
-	write            string
+	ToRead           string
+	ToWrite          string
 	list             bool
-	search           string
-	remove           string
+	keywords         string
+	ToRemove         string
 	ToRename         bool
 	OldName, NewName string
 
@@ -62,20 +61,21 @@ func init() {
 	flag.BoolVar(&version, "v", false, "display version number")
 
 	flag.BoolVar(&help, "help", false, "display help info")
+	flag.BoolVar(&help, "h", false, "display help info")
 
-	flag.StringVar(&read, "read", "", "read a note")
-	flag.StringVar(&read, "r", "", "read a note")
+	flag.StringVar(&ToRead, "read", "", "read a note")
+	flag.StringVar(&ToRead, "r", "", "read a note")
 
-	flag.StringVar(&write, "write", "", "write a note")
-	flag.StringVar(&write, "w", "", "write a note")
+	flag.StringVar(&ToWrite, "write", "", "write a note")
+	flag.StringVar(&ToWrite, "w", "", "write a note")
 
 	flag.BoolVar(&list, "list", false, "list a note")
 	flag.BoolVar(&list, "l", false, "list a note")
 
-	flag.StringVar(&search, "search", "", "search a note")
-	flag.StringVar(&search, "s", "", "search a note")
+	flag.StringVar(&keywords, "search", "", "search a note")
+	flag.StringVar(&keywords, "s", "", "search a note")
 
-	flag.StringVar(&remove, "remove", "", "remove a note")
+	flag.StringVar(&ToRemove, "remove", "", "remove a note")
 
 	flag.BoolVar(&ToRename, "rename", false, "rename a note")
 	flag.StringVar(&OldName, "old", "", "old noteName ")
@@ -94,16 +94,17 @@ func parseArges() {
 	}
 
 	if help {
-		flag.Usage()
+		// flag.Usage()
+		fmt.Println(helpUsage)
 	}
 
-	if read != "" {
-		readNote(CONF.Browser, FullNotePath(read))
+	if ToRead != "" {
+		readNote(CONF.Browser, FullNotePath(ToRead))
 	}
 
-	if write != "" {
-		writeNote(CONF.Editor, FullNotePath(write))
-		IndexNote(write)
+	if ToWrite != "" {
+		writeNote(CONF.Editor, FullNotePath(ToWrite))
+		IndexNote(ToWrite)
 	}
 
 	if list {
@@ -114,22 +115,35 @@ func parseArges() {
 		}
 	}
 
-	if search != "" {
+	if keywords != "" {
 		if IsInteractive {
-			searchNotesInteractive(search)
+			searchNotesInteractive(keywords)
 		} else {
-			searchNotes(search)
+			searchNotes(keywords)
 		}
 	}
 
-	if remove != "" {
-		remoteNote(FullNotePath(remove))
+	if ToRemove != "" {
+		remoteNote(FullNotePath(ToRemove))
 	}
 
 	if ToRename {
 		renameNote(FullNotePath(OldName), FullNotePath(NewName))
 	}
 }
+
+var helpUsage = `
+Usage: cmdnote [options]
+
+-r --read   NOTENAME                read a note
+-w --write  NOTENAME                write a note
+-l --list                           list all notes
+     -i --interactive                   provide interactive inspection
+--remove    NOTENAME                remove a note
+--rename    OLDNAME NEWNAME         rename a note
+-s --search KEYWORDS                search for a note
+     -i --interactive                   provide interactive inspection
+`
 
 func FullNotePath(noteTitle string) string {
 	return path.Join(CONF.LocalRepoDir, noteTitle)
@@ -141,10 +155,10 @@ func Exist(filename string) bool {
 }
 
 func init() {
-	if !Exist(path.Join(path.Dir(CONF.LocalRepoDir), "conf.json")) {
-		DumpConf(path.Join(path.Dir(CONF.LocalRepoDir), "conf.json"))
+	if !Exist(confPath) {
+		DumpConf(confPath)
 	} else {
-		LoadConf(path.Join(path.Dir(CONF.LocalRepoDir), "conf.json"))
+		LoadConf(confPath)
 	}
 	if !Exist(CONF.LocalRepoDir) {
 		os.MkdirAll(CONF.LocalRepoDir, os.ModePerm)
@@ -162,12 +176,18 @@ func init() {
 }
 
 func GetDefaultLocalRepoDir() string {
-	return path.Join(getExecutePath(), "cmd_notes")
-	// fName, err := filepath.Abs(os.Args[0])
-	// if err != nil {
-	// log.Fatal(err)
-	// }
-	// return path.Join(path.Dir(fName), "cmd_notes")
+	return path.Join(getExecuteDir(), "cmd_notes")
+}
+
+func GetDefaultEditorBrowser() string {
+	sysType := runtime.GOOS
+	if sysType == "windows" {
+		return "notepad"
+	}
+	if sysType == "linux" || sysType == "darwin" {
+		return "nano"
+	}
+	return "vim"
 }
 
 // load configuration from CONF file
@@ -231,6 +251,8 @@ func writeNote(prog, notePath string) {
 
 }
 
+// build index for a note, or otherwise it cannot
+// be found during search
 func IndexNote(noteTitle string) {
 	index, err := bleve.Open(BlevePath)
 	if err != nil {
@@ -265,6 +287,7 @@ func noteTitlesBySearch(keywords string) []string {
 	return noteTitles
 }
 
+// (full text) search notes by keywords
 func searchNotes(keywords string) {
 	noteTitles := noteTitlesBySearch(keywords)
 	for _, title := range noteTitles {
@@ -276,7 +299,7 @@ func searchNotesInteractive(keywords string) {
 
 	noteTitles := noteTitlesBySearch(keywords)
 	for i, title := range noteTitles {
-		fmt.Printf("%-5d %s\n", i, title)
+		fmt.Printf("%5d) %s\n", i, title)
 	}
 
 	interactiveSession(noteTitles)
@@ -335,6 +358,8 @@ func listNotesInteractive() {
 	interactiveSession(allNotes)
 }
 
+// interactive sesion where users can continueously inspect a note
+// with the program he wants
 func interactiveSession(noteTitles []string) {
 	if len(noteTitles) == 0 {
 		fmt.Println("Sorry, nothing found!")
@@ -394,7 +419,8 @@ func renameNote(oldPath, newPath string) {
 	}
 }
 
-func getExecutePath() string {
+// get the path of the executable file
+func getExecuteDir() string {
 	dir, err := os.Executable()
 	if err != nil {
 		fmt.Println(err)

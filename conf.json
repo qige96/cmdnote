@@ -1,6 +1,6 @@
 {
-	"editor": "nano",
-	"browser": "less",
-	"localRepoDir": "/home/ricky/my-projects/cmdnote/cmd_notes",
+	"editor": "notepad",
+	"browser": "notepad",
+	"localRepoDir": "F:\\my-projects\\cmdnote/cmd_notes",
 	"remoteRepoDir": ""
 }
