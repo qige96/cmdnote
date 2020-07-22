@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -40,110 +39,6 @@ var (
 	confPath  = path.Join(path.Dir(CONF.LocalRepoDir), "conf.json")
 	BlevePath = path.Join(CONF.LocalRepoDir, BleveFolder)
 )
-
-var (
-	version bool
-	help    bool
-
-	ToRead           string
-	ToWrite          string
-	list             bool
-	keywords         string
-	ToRemove         string
-	ToRename         bool
-	OldName, NewName string
-
-	IsInteractive bool
-)
-
-func init() {
-	flag.BoolVar(&version, "version", false, "display version number")
-	flag.BoolVar(&version, "v", false, "display version number")
-
-	flag.BoolVar(&help, "help", false, "display help info")
-	flag.BoolVar(&help, "h", false, "display help info")
-
-	flag.StringVar(&ToRead, "read", "", "read a note")
-	flag.StringVar(&ToRead, "r", "", "read a note")
-
-	flag.StringVar(&ToWrite, "write", "", "write a note")
-	flag.StringVar(&ToWrite, "w", "", "write a note")
-
-	flag.BoolVar(&list, "list", false, "list a note")
-	flag.BoolVar(&list, "l", false, "list a note")
-
-	flag.StringVar(&keywords, "search", "", "search a note")
-	flag.StringVar(&keywords, "s", "", "search a note")
-
-	flag.StringVar(&ToRemove, "remove", "", "remove a note")
-
-	flag.BoolVar(&ToRename, "rename", false, "rename a note")
-	flag.StringVar(&OldName, "old", "", "old noteName ")
-	flag.StringVar(&NewName, "new", "", "new noteName ")
-
-	flag.BoolVar(&IsInteractive, "interactive", false, "use interactive mode")
-	flag.BoolVar(&IsInteractive, "i", false, "use interactive mode")
-
-}
-
-func parseArges() {
-	flag.Parse()
-
-	if version {
-		fmt.Println(VersionNumber)
-	}
-
-	if help {
-		// flag.Usage()
-		fmt.Println(helpUsage)
-	}
-
-	if ToRead != "" {
-		readNote(CONF.Browser, FullNotePath(ToRead))
-	}
-
-	if ToWrite != "" {
-		writeNote(CONF.Editor, FullNotePath(ToWrite))
-		IndexNote(ToWrite)
-	}
-
-	if list {
-		if IsInteractive {
-			listNotesInteractive()
-		} else {
-			listNotes()
-		}
-	}
-
-	if keywords != "" {
-		if IsInteractive {
-			searchNotesInteractive(keywords)
-		} else {
-			searchNotes(keywords)
-		}
-	}
-
-	if ToRemove != "" {
-		remoteNote(FullNotePath(ToRemove))
-	}
-
-	if ToRename {
-		renameNote(FullNotePath(OldName), FullNotePath(NewName))
-	}
-}
-
-var helpUsage = `
-Usage: cmdnote [options]
-
--r --read   NOTENAME                read a note
--w --write  NOTENAME                write a note
--l --list                           list all notes
-     -i --interactive                   provide interactive inspection
---remove    NOTENAME                remove a note
---rename    OLDNAME NEWNAME         rename a note
--s --search KEYWORDS                search for a note
-     -i --interactive                   provide interactive inspection
-`
 
 func FullNotePath(noteTitle string) string {
 	return path.Join(CONF.LocalRepoDir, noteTitle)
@@ -249,60 +144,6 @@ func writeNote(prog, notePath string) {
 
 	invoke(prog, []string{notePath})
 
-}
-
-// build index for a note, or otherwise it cannot
-// be found during search
-func IndexNote(noteTitle string) {
-	index, err := bleve.Open(BlevePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer index.Close()
-
-	notePath := path.Join(CONF.LocalRepoDir, noteTitle)
-	data, err := ioutil.ReadFile(notePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	index.Index(noteTitle, noteTitle+" "+string(data))
-}
-
-func noteTitlesBySearch(keywords string) []string {
-	index, err := bleve.Open(BlevePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer index.Close()
-
-	query := bleve.NewQueryStringQuery(keywords)
-	searchRequest := bleve.NewSearchRequest(query)
-	searchResult, _ := index.Search(searchRequest)
-
-	noteTitles := []string{}
-	for _, doc := range searchResult.Hits {
-		noteTitles = append(noteTitles, doc.ID)
-	}
-	return noteTitles
-}
-
-// (full text) search notes by keywords
-func searchNotes(keywords string) {
-	noteTitles := noteTitlesBySearch(keywords)
-	for _, title := range noteTitles {
-		fmt.Println(title)
-	}
-}
-
-func searchNotesInteractive(keywords string) {
-
-	noteTitles := noteTitlesBySearch(keywords)
-	for i, title := range noteTitles {
-		fmt.Printf("%5d) %s\n", i, title)
-	}
-
-	interactiveSession(noteTitles)
 }
 
 // recursively list all files under a directory

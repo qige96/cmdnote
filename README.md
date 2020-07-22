@@ -18,7 +18,7 @@ A simple note taking system for command line interface.
 
    ```shell
    $ cd cmdnote
-   $ go build cmdnote.go # require third party dependency, may demand network
+   $ go build   # require third party dependency, may demand network
    $ go install # install to $GOPATH
    ```
 
@@ -30,7 +30,7 @@ You could do basic CURD to the notes. All notes are stored as files in your loca
 $ cmdnote -w hello.txt # invoke your preferred editor to write a file
 $ cmdnote -r hello.txt # invoke your preferred reader to read a file
 $ cmdnote -l # list all available notes
-$ cmdnote --rename hello.txt world.txt # rename a note
+$ cmdnote --rename hello.txt:world.txt # rename a note, use ":" to seperate old name and new name
 $ cmdnote --remove world.txt # remove a note
 ```
 

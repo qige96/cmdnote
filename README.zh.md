@@ -19,7 +19,7 @@
 
    ```shell
    $ cd cmdnote
-   $ go build cmdnote.go # 此过程回安装第三方依赖bleve，需要联网或本地GOPATH已有此依赖包
+   $ go build   # 此过程回安装第三方依赖bleve，需要联网或本地GOPATH已有此依赖包
    $ go install # 安装到GOPATH
    ```
 
@@ -33,7 +33,7 @@
 $ cmdnote -w hello.txt # 调用你的编辑器去编辑笔记
 $ cmdnote -r hello.txt # 调用你的阅读器去查阅笔记
 $ cmdnote -l # 列出所有笔记
-$ cmdnote --rename hello.txt world.txt # 重命名笔记
+$ cmdnote --rename hello.txt:world.txt # 重命名笔记, 用“：”分割原笔记名和新笔记名
 $ cmdnote --remove world.txt # 删除笔记
 ```
 
