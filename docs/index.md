@@ -2,27 +2,29 @@
 
 A simple note taking system for command line interface.
 
-[中文文档](./README.zh.md)
+[中文文档](https://github.com/qige96/cmdnote/blob/master/README.zh.md)
 
-#### Installation
+## Installation
 
-1. Install Go：https://golang.org/
+**First, install Go**
 
-2.  Download project source code
+Go to the [Golang official website](https://golang.org/) and follow the instructions.
 
-    ```shell
-    $ git clone https://github.com/qige96/cmdnote.git
-    ```
+**Second, download project source code**
 
-3. Compile (and install)
+```shell
+$ git clone https://github.com/qige96/cmdnote.git
+```
 
-   ```shell
-   $ cd cmdnote
-   $ go build cmdnote.go # require third party dependency, may demand network
-   $ go install # install to $GOPATH
-   ```
+**Lastly, compile (and install)**
 
-#### Usage
+```shell
+$ cd cmdnote
+$ go build cmdnote.go # require third party dependency, may demand network
+$ go install # install to $GOPATH
+```
+
+## Usage
 
 You could do basic CURD to the notes. All notes are stored as files in your local repository.
 
@@ -40,7 +42,7 @@ $ cmdnote --remove world.txt # remove a note
 $ cmdnote -s "hello"
 ```
 
-#### Configuration
+## Configuration
 
 Configuration file `conf.json` is located under the same directory as the executable file live, config for Windows may look like：
 
@@ -66,6 +68,6 @@ config for Linux or MacOS(Darwin) may look like：
 
 
 
-#### License
+## License
 
-MIT
+[MIT License](https://mit-license.org/)

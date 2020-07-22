@@ -1,4 +1,4 @@
-# CmdNote
+# cmdnote
 
 A simple note taking system for command line interface.
 
