@@ -54,22 +54,6 @@
             
             <li class="nav-item" data-level="1"><a href="#cmdnote" class="nav-link">CmdNote</a>
               <ul class="nav flex-column">
-            <li class="nav-item" data-level="2"><a href="#installation" class="nav-link">Installation</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#usage" class="nav-link">Usage</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#configuration" class="nav-link">Configuration</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-level="2"><a href="#license" class="nav-link">License</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
               </ul>
             </li>
         </ul>
@@ -80,33 +64,77 @@
 <h1 id="cmdnote">CmdNote</h1>
 <p>A simple note taking system for command line interface.</p>
 <p><a href="https://github.com/qige96/cmdnote/blob/master/README.zh.md">中文文档</a></p>
-<h2 id="installation">Installation</h2>
-<p><strong>First, install Go</strong></p>
-<p>Go to the <a href="https://golang.org/">Golang official website</a> and follow the instructions.</p>
-<p><strong>Second, download project source code</strong></p>
+<h3 id="installation">Installation</h3>
+<p><strong>Firstly, install Golang</strong></p>
+<p>Refer to the <a href="https://golang.org/">Go official website</a> and follow the instructions.</p>
+<p><strong>Secondly, download project source code</strong></p>
 <pre><code class="shell">$ git clone https://github.com/qige96/cmdnote.git
 </code></pre>
 
 <p><strong>Lastly, compile (and install)</strong></p>
 <pre><code class="shell">$ cd cmdnote
-$ go build cmdnote.go # require third party dependency, may demand network
-$ go install # install to $GOPATH
+$ go build   # require third party dependency, may demand network
+$ go install # install to $GOPATH (optional)
 </code></pre>
 
-<h2 id="usage">Usage</h2>
+<h3 id="usage">Usage</h3>
 <p>You could do basic CURD to the notes. All notes are stored as files in your local repository.</p>
 <pre><code class="shell">$ cmdnote -w hello.txt # invoke your preferred editor to write a file
 $ cmdnote -r hello.txt # invoke your preferred reader to read a file
-$ cmdnote -l # list all available notes
-$ cmdnote --rename hello.txt world.txt # rename a note
-$ cmdnote --remove world.txt # remove a note
+$ cmdnote -l           # list all available notes
+$ cmdnote --rename hello.txt:world.txt  # rename a note, use &quot;:&quot; to seperate old name and new name
+$ cmdnote --remove world.txt            # remove a note
 </code></pre>
 
 <p><strong>Support full text search by keywords</strong></p>
-<pre><code class="shell">$ cmdnote -s &quot;hello&quot;
+<pre><code class="shell">$ cmdnote -l
+go.txt
+hello.txt
+lang.txt
+lesson1.txt
+
+$ cmdnote -s &quot;hello&quot;
+go.txt
+hello.txt
+
 </code></pre>
 
-<h2 id="configuration">Configuration</h2>
+<p><strong>--list</strong> and <strong>--search</strong> also support interactive inspection</p>
+<pre><code class="shell">$ cmdnote -l -i 
+    0) go.txt
+    1) hello.txt
+    2) lang.txt
+    3) lesson1.txt
+&gt; Which note would you like to check? 0
+&gt; Which program would you like to use? cat
+hello golang!
+&gt; Which note would you like to check? 1
+&gt; Which program would you like to use? cat
+hello world!
+&gt; Which note would you like to check? 2
+&gt; Which program would you like to use? cat
+Other langs: 
+
+- C
+- C++
+- C#
+- Objectve-C
+- Lisp
+- PHP
+- JavaScript
+- TypeScript
+
+&gt; Which note would you like to check? 3
+&gt; Which program would you like to use? cat
+This is lesson 1.
+
+Fundamental syntax.
+&gt; Which note would you like to check?
+
+$
+</code></pre>
+
+<h3 id="configuration">Configuration</h3>
 <p>Configuration file <code>conf.json</code> is located under the same directory as the executable file live, config for Windows may look like：</p>
 <pre><code class="json">{
         &quot;editor&quot;: &quot;notepad&quot;,
@@ -125,7 +153,7 @@ $ cmdnote --remove world.txt # remove a note
 }
 </code></pre>
 
-<h2 id="license">License</h2>
+<h3 id="license">License</h3>
 <p><a href="https://mit-license.org/">MIT License</a></p></div>
             </div>
         </div>
@@ -210,5 +238,5 @@ $ cmdnote --remove world.txt # remove a note
 
 <!--
 MkDocs version : 1.1.2
-Build Date UTC : 2020-07-22 02:27:56.912944+00:00
+Build Date UTC : 2020-07-22 05:19:42.398813+00:00
 -->

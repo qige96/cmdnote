@@ -214,7 +214,7 @@ func interactiveSession(noteTitles []string) {
 	)
 
 	for {
-		fmt.Print("Which note would you like to check? ")
+		fmt.Print("> Which note would you like to check? ")
 		_, err = fmt.Scanln(&noteId)
 		if err != nil {
 			if err.Error() == "unexpected newline" {
@@ -224,7 +224,7 @@ func interactiveSession(noteTitles []string) {
 			}
 		}
 
-		fmt.Print("Which program would you like to use? ")
+		fmt.Print("> Which program would you like to use? ")
 		_, err = fmt.Scanln(&prog)
 		if err != nil {
 			if err.Error() == "unexpected newline" {
